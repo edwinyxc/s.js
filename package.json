@@ -1,0 +1,31 @@
+{
+  "name": "s.js",
+  "version": "0.0.1",
+  "description": "simple, smart, starter, slim, small, swift...... js common lib",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edwinyxc/s.js"
+  },
+  "keywords": [
+    "js",
+    "common",
+    "lib"
+  ],
+  "author": "edwinyxc",
+  "license": "APACHE 2",
+  "bugs": {
+    "url": "https://github.com/edwinyxc/s.js/issues"
+  },
+  "homepage": "https://github.com/edwinyxc/s.js",
+  "devDependencies": {
+    "del": "^1.1.1",
+    "gulp": "^3.8.11",
+    "gulp-concat": "^2.5.2",
+    "gulp-jshint": "^1.10.0",
+    "gulp-uglify": "^1.2.0"
+  }
+}
