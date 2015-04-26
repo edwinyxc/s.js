@@ -2,9 +2,9 @@
   "name": "s.js",
   "version": "0.0.1",
   "description": "simple, smart, starter, slim, small, swift...... js common lib",
-  "main": "index.js",
+  "main": "src/s.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "mocha doc.js"
   },
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "lib"
   ],
   "author": "edwinyxc",
-  "license": "APACHE 2",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/edwinyxc/s.js/issues"
   },
@@ -26,6 +26,7 @@
     "gulp": "^3.8.11",
     "gulp-concat": "^2.5.2",
     "gulp-jshint": "^1.10.0",
+    "gulp-shell": "^0.4.1",
     "gulp-uglify": "^1.2.0"
   }
 }

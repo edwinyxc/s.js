@@ -1,5 +1,5 @@
 var assert = require('assert');
-require('../src/s.js');
+require('./index.js');
 
 var report = S._log('Report:');
 S.install();

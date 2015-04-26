@@ -1,5 +1,4 @@
 (function() {
-
     var log_level = ['err', 'warn', 'info', 'debug']
 
     //consts
@@ -27,6 +26,17 @@
     var __DO_NOTHING = function() {}
 
     /***************** BASIC *****************/
+
+    function pairs(obj) {
+        obj = obj || {};
+        var pairs = [];
+        for (var index in obj) {
+            if (obj.hasOwnProperty(index)) {
+                pairs.push([index, obj[index]]);
+            }
+        }
+        return pairs;
+    }
 
     function tap(obj, interceptor) {
         interceptor(obj);
@@ -126,7 +136,8 @@
         assign_generic(Array, ['join', 'reverse', 'sort', 'push', 'pop', 'shift', 'unshift',
             'splice', 'concat', 'slice', 'indexOf', 'lastIndexOf',
             'forEach', 'map', 'reduce', 'reduceRight', 'filter',
-            'some', 'every', 'find', 'findIndex','compact'
+            'some', 'every',
+            'find', 'findIndex', 'compact', 'densify', 'isEmpty', 'where', 'exclude'
         ]);
 
         install(Function, Function_statics, 'Function');
@@ -171,6 +182,36 @@
 
     var Function_addons = {
 
+        compose: function() {
+            var args = arguments;
+            var tail = args.length - 1;
+            var fn = this;
+            return function() {
+                var i = tail;
+                var result = args[tail].apply(this, arguments);
+                while (i--) result = args[i].call(this, result);
+                return fn.call(this, result);
+            };
+        },
+
+        wrap: function(wrapper) {
+            return Function_statics.partial(wrapper, this);
+        },
+
+        once: function() {
+            var fn = this;
+            var memo;
+            var called = false;
+
+            return function() {
+                if (!called) {
+                    memo = fn.apply(this, arguments);
+                    called = true;
+                }
+                return memo;
+            }
+        },
+
         method: function(name, func) {
             if (!this.prototype[name]) {
                 this.prototype[name] = func;
@@ -205,28 +246,17 @@
         },
 
         partial: (function() {
-            // This function will be returned as a result of the IIFE and assigned
-            // to the external `partialAny` var.
             function partialAny( /*, args...*/ ) {
                 var fn = this;
-                // Convert arguments object to an array, removing the first argument.
-                var orig = __slice.call(arguments, 1);
+
+                var orig = __slice.call(arguments, 0);
 
                 return function() {
-                    // Convert arguments object to an array.
                     var partial = __slice.call(arguments, 0);
                     var args = [];
-
-                    // Iterate over the originally-specified arguments. If the argument
-                    // was the `partialAny._` placeholder, use the next just-passed-in
-                    // argument, otherwise use the originally-specified argument.
                     for (var i = 0; i < orig.length; i++) {
                         args[i] = orig[i] === partialAny._ ? partial.shift() : orig[i];
                     }
-
-                    // Invoke the originally-specified function, passing in interleaved
-                    // originally- and just-specified arguments, followed by any remaining
-                    // just-specified arguments.
                     return fn.apply(this, args.concat(partial));
                 };
             }
@@ -237,16 +267,18 @@
             return partialAny;
         }()),
 
-        negate: function(){
+        negate: function() {
             var fn = this;
-            return function(){
-                return !fn.apply(null,arguments);
+            return function() {
+                return !fn.apply(null, arguments);
             }
         }
 
     };
 
     var Function_statics = {
+
+        compose: Function.call.bind(Function_addons.compose),
 
         partial: tap(Function.call.bind(Function_addons.partial), function(partial) {
             partial._ = Function_addons.partial._;
@@ -260,11 +292,97 @@
             while (fn && typeof(fn) === 'function') fn = fn();
         },
 
+        once: Function.call.bind(Function_addons.once),
+
+        wrap: Function.call.bind(Function_addons.wrap),
+
         noop: function() {}
 
     }
 
     var Array_addons = {
+        partition: function(filterFn) {
+            var _true = [],
+                _false = [];
+            for (var i = 0, len = this.length; i < len; i++) {
+                if(filterFn(this[i],i)) _true.push(this[i]);
+                else _false.push(this[i]);
+            }
+            return [_true,_false];
+        },
+
+        update: function(index, newVal) {
+            return tap(this, function(arr) {
+                arr[index] = newVal
+            });
+        },
+
+        reductions: function(reduceFunc, inital) {
+            acc = [];
+            this.reduce(Function_statics.wrap(reduceFunc, function(fn) {
+                return tap(fn.apply(this, __slice.call(arguments, 1)), function(ret) {
+                    acc.push(ret);
+                });
+            }), inital);
+            return acc;
+        },
+
+        exclude: function() {
+            var arr = this;
+            var args = __slice.call(arguments);
+            return arr.filter(function(elem) {
+                return !args.reduce(function(result, arg) {
+                    return result || arg === elem
+                }, false)
+            })
+        },
+
+        indexWhere: function(o) {
+
+            function checkKV(k, v) {
+                return function(o) {
+                    return o[k] && o[k] == v
+                }
+
+            }
+
+            var checkers = pairs(o).map(function(_) {
+                return checkKV(_[0], _[1])
+            })
+
+            return this.filter(function(_) {
+                return checkers.reduce(function(result, checker) {
+                    return result && checker(_);
+                }, true)
+            }).map(function(_, idx) {
+                return idx;
+            });
+        },
+
+        where: function(o) {
+
+            function checkKV(k, v) {
+                return function(o) {
+                    return o[k] && o[k] == v
+                }
+
+            }
+
+            var checkers = pairs(o).map(function(_) {
+                return checkKV(_[0], _[1])
+            })
+
+            return this.filter(function(_) {
+                return checkers.reduce(function(result, checker) {
+                    return result && checker(_);
+                }, true);
+            });
+        },
+
+        isEmpty: function() {
+            return this === root || S.isNull(this) || this.length === 0;
+        },
+
         first: function() {
             return this.length > 0 ? this[0] : void 0;
         },
@@ -324,6 +442,12 @@
                 }
             }
             return -1;
+        },
+
+        pluck: function(name) {
+            return this.filter(S.isObject).map(function(_) {
+                return _['name'];
+            })
         }
     };
     var Array_statics = {
@@ -450,17 +574,7 @@
         if (typeof expr === 'undefined' || !expr) throw '' + err;
     }
 
-    S.pairs = function(obj) {
-        S._assert(obj != null, 'keys err: obj null');
-        var pairs = [];
-        for (var index in obj) {
-            if (obj.hasOwnProperty(index)) {
-                pairs.push([index, obj[index]]);
-            }
-        }
-        return pairs;
-    }
-
+    S.pairs = pairs;
     S.keys = function(obj) {
         S._assert(obj != null, 'keys err: obj null');
         var keys = [];
@@ -505,16 +619,23 @@
 
         return ret;
     }
+    S.isUndefined = function(o) {
+        return typeof o === 'undefined'
+    }
 
     S.isObject = function(o) {
         return typeof o === 'object';
     }
 
-    S._notNull = function(o) {
+    S.isNull = function(o) {
+        return typeof o === 'undefined' || o == null;
+    }
+
+    S.notNull = function(o) {
         return typeof o !== 'undefined'
     }
 
-    S._notEmpty = function(o) {
+    S.notEmpty = function(o) {
         switch (typeof o) {
             case 'undefined':
                 return false;
