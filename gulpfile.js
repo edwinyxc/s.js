@@ -10,6 +10,10 @@ gulp.task('doc', shell.task([
     'mocha -R doc.js > doc.html'
 ]));
 
+gulp.task('md', shell.task([
+    'mocha -R markdown doc.js > README.MD'
+]));
+
 gulp.task('test', shell.task([
     'mocha doc.js'
 ]));

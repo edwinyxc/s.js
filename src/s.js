@@ -60,8 +60,8 @@
     /**
      * ['err','warn','info','debug']
      */
-    //S._log_level = 'info';
-    S._log_level = 'debug';
+    //S._log_level = 'debug';
+    S._log_level = 'err';
 
     //find root object
     var root = (function() {
