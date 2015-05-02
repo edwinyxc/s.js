@@ -1,5 +1,5 @@
 (function() {
-    var log_level = ['err', 'warn', 'info', 'debug']
+    var log_level = ['err', 'warn', 'info', 'debug'];
 
     //consts
     // VERSION
@@ -649,12 +649,6 @@
     }
 
 
-
-
-
-
-
-
     /***************** FOR     ***************/
 
     /***************** PROMISE ***************/
@@ -747,7 +741,7 @@
                     on_resolved: on_resolved,
                     on_rejected: on_rejected,
                     resolve: resolve,
-                    reject: reject,
+                    reject: reject
                 });
             });
         };

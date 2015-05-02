@@ -1,10 +1,11 @@
 var assert = require('assert');
 require('./index.js');
 
-var report = S._log('Report:');
-S.install();
+describe('#Install --using S.install()',function(){
+    S.install();
+});
 
-describe('Object', function() {
+describe('#Object', function() {
 
     describe('#create -- create objects using the input as prototype',
         function() {
@@ -53,7 +54,6 @@ describe('Object', function() {
                 var out = [];
                 var indexs = [];
 
-                report(Object.forEach);
 
                 Object.forEach(o, function(item, index) {
                     out.push(item);
@@ -86,7 +86,7 @@ describe('Object', function() {
 
 });
 
-describe('Function', function() {
+describe('#Function', function() {
 
     describe('#negate -- return a negated version of predicate', function() {
 
@@ -249,7 +249,7 @@ describe('Function', function() {
 
 });
 
-describe('Array', function() {
+describe('#Array', function() {
 
 
     describe('creation', function() {
@@ -510,7 +510,7 @@ describe('Array', function() {
 });
 
 
-describe('S', function() {
+describe('#S', function() {
     describe('#isNull -- return true if the input object equals null or undefined', function() {
         it('S.isNull', function() {
             assert.equal(S.isNull(null), true);
