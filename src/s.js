@@ -1,13 +1,15 @@
 (function() {
     var log_level = ['err', 'warn', 'info', 'debug'];
+    /**
+     * ['err','warn','info','debug']
+     */
+    var _log_level = 'warn';
 
     //consts
     // VERSION
-    var version = '0.0.1';
+    var version = '0.0.2';
 
     var __slice = Array.prototype.slice;
-    var __toString = Object.prototype.toString;
-    var __hasOwnProperty = Object.prototype.hasOwnProperty;
 
     var __undefined = void 0;
 
@@ -25,14 +27,77 @@
 
     var __DO_NOTHING = function() {}
 
+    /***************** PREDICATES ************/
+
+    function isObject(obj) {
+        return typeof obj === 'object'
+    }
+
+    function isEmpty(obj) {
+        var type = typeof obj;
+        switch (type) {
+            case 'undefined':
+                return true;
+            case 'string':
+                return obj.length === 0;
+            case 'number':
+                return obj === 0;
+            case 'object':
+                return Array.isArray(obj) ? (obj.length === 0) : (pairs(obj).length === 0)
+            case 'function':
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    function isNull(obj) {
+        return null == obj;
+    }
+
     /***************** BASIC *****************/
 
-    function pairs(obj) {
+    function negate(fn) {
+        return function() {
+            return !fn.apply(null, arguments);
+        }
+    }
+
+    function extend() {
+        if (arguments.length < 1)
+            throw 'extend err: arguments.length < 1';
+
+        var target = Object(arguments[0]);
+
+        if (typeof target === 'undefined' || target == null)
+            throw new TypeError('extend err: args[0] == null');
+
+        var len = arguments.length;
+        for (var i = len - 1; i >= 1; i--) {
+            if (arguments[i] === __undefined) continue;
+
+            pairs(arguments[i]).forEach(function(kv) {
+                var key = kv[0],
+                    value = kv[1]
+                if (typeof kv[1] === 'object') {
+                    target[key] = extend({}, target[key], value);
+                } else {
+                    target[key] = value;
+                }
+            });
+        }
+        return target;
+    }
+
+    function pairs(obj, useNameValue) {
         obj = obj || {};
         var pairs = [];
         for (var index in obj) {
             if (obj.hasOwnProperty(index)) {
-                pairs.push([index, obj[index]]);
+                pairs.push(useNameValue ? {
+                    name: index,
+                    value: obj[index]
+                } : [index, obj[index]])
             }
         }
         return pairs;
@@ -47,7 +112,7 @@
         var target_level = log_level.indexOf(level);
 
         if (target_level === -1 ||
-            target_level <= log_level.indexOf(S._log_level)) {
+            target_level <= log_level.indexOf(_log_level)) {
 
             return console.log.bind(console, level);
         }
@@ -55,13 +120,6 @@
         return __DO_NOTHING;
     }
 
-    //namespace
-    var S = {};
-    /**
-     * ['err','warn','info','debug']
-     */
-    //S._log_level = 'debug';
-    S._log_level = 'err';
 
     //find root object
     var root = (function() {
@@ -80,9 +138,9 @@
     })();
 
     //install S namespace
-    root.S = S;
+    //root.S = S;
 
-    S.install = function() {
+    var install = function() {
         function _for(o, fn) {
             for (var i in o) {
                 if (o.hasOwnProperty(i)) {
@@ -95,10 +153,12 @@
             _for(addons, function(addon, name) {
 
                 if (typeof global[name] !== 'function') {
-                    global[name] = addon;
-                    _log('info')('Install', name, 'to', _name);
+                    if (!global.hasOwnProperty(name)) {
+                        global[name] = addon;
+                        _log('info')('Install', name, 'to', _name);
+                    }
                 } else {
-                    _log('warn')(name + ' exists, uninstalled');
+                    _log('warn')(_name + '.' + name + ' exists, uninstalled');
                 }
 
             });
@@ -106,7 +166,7 @@
 
         function assign_generic(global, methods) {
             methods.forEach(function(methodName) {
-                if (!global[methodName]) {
+                if (!global.hasOwnProperty(methodName)) {
                     var method = global.prototype[methodName];
                     _log('debug')('Generalized', methodName);
                     if (typeof method === 'function') {
@@ -137,7 +197,7 @@
             'splice', 'concat', 'slice', 'indexOf', 'lastIndexOf',
             'forEach', 'map', 'reduce', 'reduceRight', 'filter',
             'some', 'every',
-            'find', 'findIndex', 'compact', 'densify', 'isEmpty', 'where', 'exclude'
+            'find', 'findIndex', 'compact', 'densify', 'where', 'exclude', 'isEmpty'
         ]);
 
         install(Function, Function_statics, 'Function');
@@ -146,12 +206,16 @@
         install_Promise_on_need();
     }
 
-    S.uninstall = function() {
-
-    }
-
 
     var Object_addons = {
+
+        extend: function() {
+            return extend.apply(this, [this].concat(__slice.call(arguments)));
+        },
+
+        pairs: function() {
+            return pairs.apply(this,[this].concat(__slice.call(arguments)));
+        },
 
         create: function() {
             var F = function F() {};
@@ -159,24 +223,39 @@
             return new F();
         },
 
-        forEach: function(fn) {
-            var o = Object(this);
-            console.log('this:', this);
-            for (var i in o) {
-                if (o.hasOwnProperty(i)) {
-                    fn(o[i], i);
-                }
-            }
-        },
         tap: function(interceptor) {
             interceptor(this);
             return this;
+        },
+
+        getOrCreate: function(name, obj) {
+            if (this.hasOwnProperty(name)) {
+                return this[name];
+            } else {
+                this[name] = obj;
+                return obj;
+            }
+        },
+
+        getOrDefault: function(name, obj) {
+            var ret;
+            if (this.hasOwnProperty(name) && !isNull(ret = this[name])) {
+                return ret;
+            } else {
+                return obj;
+            }
         }
+
     };
 
     var Object_statics = {
+        isEmpty: isEmpty,
+        isNull: isNull,
+        notNull: negate(isNull),
+        notEmpty: negate(isEmpty),
+        extend: extend,
+        pairs: pairs,
         create: Function.call.bind(Object_addons.create),
-        forEach: Function.call.bind(Object_addons.forEach),
         tap: Function.call.bind(Object_addons.tap)
     };
 
@@ -301,14 +380,19 @@
     }
 
     var Array_addons = {
+
+        isEmpty: function() {
+            return root === this || isNull(this) || this.length === 0
+        },
+
         partition: function(filterFn) {
             var _true = [],
                 _false = [];
             for (var i = 0, len = this.length; i < len; i++) {
-                if(filterFn(this[i],i)) _true.push(this[i]);
+                if (filterFn(this[i], i)) _true.push(this[i]);
                 else _false.push(this[i]);
             }
-            return [_true,_false];
+            return [_true, _false];
         },
 
         update: function(index, newVal) {
@@ -379,10 +463,6 @@
             });
         },
 
-        isEmpty: function() {
-            return this === root || S.isNull(this) || this.length === 0;
-        },
-
         first: function() {
             return this.length > 0 ? this[0] : void 0;
         },
@@ -445,7 +525,7 @@
         },
 
         pluck: function(name) {
-            return this.filter(S.isObject).map(function(_) {
+            return this.filter(isObject).map(function(_) {
                 return _['name'];
             })
         }
@@ -557,99 +637,8 @@
 
     };
 
-    //exports
-    //
-    S._log = _log;
-
-    S._DO_NOTHING = __DO_NOTHING;
-
-    S.version = version;
-
-    S._debug = function() {
-        if (__debug)
-            console.log('_debug:', arguments);
-    }
-
-    S._assert = function(expr, err) {
-        if (typeof expr === 'undefined' || !expr) throw '' + err;
-    }
-
-    S.pairs = pairs;
-    S.keys = function(obj) {
-        S._assert(obj != null, 'keys err: obj null');
-        var keys = [];
-        for (var index in obj) {
-            if (obj.hasOwnProperty(index))
-                keys.push(index);
-        }
-        return keys;
-    }
 
 
-    S.prop = function(key) {
-        return function(obj) {
-            return obj == null ? __undefined : obj[key];
-        }
-    }
-
-
-    S.extend = function() {
-        if (arguments.length < 1)
-            throw 'extend err: arguments.length < 1';
-
-        var target = arguments[0];
-
-        if (typeof target === 'undefined' || target == null)
-            throw new TypeError('extend err: args[0] == null');
-
-        var ret = Object(target);
-        for (var i = 1; i < arguments.length; i++) {
-            if (arguments[i] === __undefined) continue;
-
-            S.pairs(arguments[i]).forEach(function(kv) {
-                var key = kv[0],
-                    value = kv[1]
-                if (typeof kv[1] === 'object') {
-                    ret[key] = S.extend({}, ret[key], value);
-                } else {
-                    ret[key] = value;
-                }
-            });
-        }
-
-        return ret;
-    }
-    S.isUndefined = function(o) {
-        return typeof o === 'undefined'
-    }
-
-    S.isObject = function(o) {
-        return typeof o === 'object';
-    }
-
-    S.isNull = function(o) {
-        return typeof o === 'undefined' || o == null;
-    }
-
-    S.notNull = function(o) {
-        return typeof o !== 'undefined'
-    }
-
-    S.notEmpty = function(o) {
-        switch (typeof o) {
-            case 'undefined':
-                return false;
-            case 'object':
-                return o != null;
-            case 'string':
-                return o.length > 0;
-            default:
-                return true;
-        }
-    }
-
-
-    /***************** FOR     ***************/
 
     /***************** PROMISE ***************/
 
@@ -822,5 +811,7 @@
     // Promise.any()
     //END OF PROMISE
 
+    //install the s.js
 
+    install();
 }.call(this));

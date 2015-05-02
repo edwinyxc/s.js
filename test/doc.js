@@ -1,10 +1,145 @@
 var assert = require('assert');
 require('../src/s.js');
 
-var report = S._log('Report:');
-S.install();
+describe('#Object', function() {
 
-describe('Object', function() {
+    describe('Predicates', function() {
+        describe('#isNull', function() {
+
+            it('Object.isNull(obj)', function() {
+                assert.equal(Object.isNull(null), true);
+                assert.equal(Object.isNull(undefined), true)
+                assert.equal(Object.isNull(void 0), true)
+            })
+
+        })
+
+        describe('#notNull', function() {
+
+            it('Object.notNull', function() {
+                assert.equal(Object.notNull({}), true)
+                assert.equal(Object.notNull([]), true)
+            })
+        })
+
+        describe('#isEmpty', function() {
+
+            it('Object.isEmpty(obj)', function() {
+                assert.equal(Object.isEmpty(''), true)
+                assert.equal(Object.isEmpty([]), true)
+                assert.equal(Object.isEmpty(['a']), false)
+                assert.equal(Object.isEmpty({}), true)
+                assert.equal(Object.isEmpty({
+                    a: 'a'
+                }), false)
+                assert.equal(Object.isEmpty(null), true)
+                assert.equal(Object.isEmpty(void 0), true)
+                assert.equal(Object.isEmpty('sdd'), false)
+            })
+        })
+
+        describe('#notEmpty', function() {
+            it('Object.notEmpty(obj)', function() {
+                assert.equal(Object.notEmpty(''), false)
+                assert.equal(Object.notEmpty([]), false)
+                assert.equal(Object.notEmpty(['a']), true)
+                assert.equal(Object.notEmpty({}), false)
+                assert.equal(Object.notEmpty({
+                    a: 'a'
+                }), true)
+                assert.equal(Object.notEmpty(null), false)
+                assert.equal(Object.notEmpty(void 0), false)
+                assert.equal(Object.notEmpty('sdd'), true)
+            })
+        })
+    })
+
+    describe('Asserts & Utils', function() {
+        describe('#getOrCreate -- try to get a property of object, or create the property if it is not defined ', function() {
+
+            it('obj.getOrCreate(name, [newObejct])', function() {
+                var a = {};
+                var b = a.getOrCreate('name', 'yxc');
+                assert.deepEqual(a, {
+                    name: 'yxc'
+                });
+                assert.deepEqual(b, 'yxc');
+            })
+
+            it('obj.getOrCreate(name,newObject) -- should keep null/undefined without operations', function() {
+                var a = {
+                    name: null,
+                    value: undefined
+                }
+                var name = a.getOrCreate('name', 'yxc');
+                assert.equal(name, null);
+                var name1 = a.getOrCreate('value', 'yxc');
+                assert.equal(name1, undefined);
+            })
+        })
+
+        describe('#getOrDefault -- try to get a property of object, or get the default value if it is not defined or null' , function() {
+            it('obj.getOrDefault(name,default)', function(){
+                var a = {'n':null,'y':'yes'};
+                assert(a.getOrDefault('name','yxc'),'yxc');
+                assert(a.getOrDefault('n','yxc'),'yxc');
+                assert(a.getOrDefault('y','yxc'),'yes');
+            })
+
+        })
+
+    })
+
+    describe('#extend -- extend obejct from RIGHT TO LEFT', function() {
+        var a = {
+            a: 'a',
+            b: 'b'
+        };
+
+        var b = {
+            a: 'bl',
+            c: 'c',
+            b: 'eee'
+        };
+
+        it('obj.extend({},{},...)', function() {
+            assert.deepEqual({
+                name: 'empty'
+            }.extend(a, b), {
+                a: 'a',
+                b: 'b',
+                c: 'c',
+                name: 'empty'
+            });
+        });
+
+        it('Object.extend({},a,b,c ....)', function() {
+            assert.deepEqual(Object.extend({
+                name: 'empty'
+            }, a, b), {
+                a: 'a',
+                b: 'b',
+                c: 'c',
+                name: 'empty'
+            });
+        });
+    })
+
+    describe('#pairs -- convert object to a array ', function() {
+        var example = {a:'a',b:'b',c:'c'}
+        it('obj.pairs() -- pair to 2d-arrays', function(){
+            assert.deepEqual(example.pairs() ,[['a','a'],['b','b'],['c','c']])
+        })
+
+        it('obj.pairs(true) -- pair to name/value pairs', function(){
+            assert.deepEqual(example.pairs(true) ,[
+                    {name:'a',value:'a'},
+                    {name:'b',value:'b'},
+                    {name:'c',value:'c'} 
+            ])
+        })
+
+    })
 
     describe('#create -- create objects using the input as prototype',
         function() {
@@ -25,49 +160,6 @@ describe('Object', function() {
             })
         });
 
-    describe('#forEach -- using fn(item,index) for iteration',
-        function() {
-            it('obj.forEach(fn)', function() {
-                var o = {
-                    a: 'a1',
-                    b: 'b2',
-                    c: 'c3'
-                }
-                var out = [];
-                var indexs = [];
-                o.forEach(function(item, index) {
-                    out.push(item);
-                    indexs.push(index);
-                });
-
-                assert.deepEqual(['a1', 'b2', 'c3'], out);
-                assert.deepEqual(['a', 'b', 'c'], indexs);
-            });
-
-            it('Object.forEach(fn)', function() {
-                var o = {
-                    a: 'a1',
-                    b: 'b2',
-                    c: 'c3'
-                }
-                var out = [];
-                var indexs = [];
-
-                report(Object.forEach);
-
-                Object.forEach(o, function(item, index) {
-                    out.push(item);
-                    indexs.push(index);
-                });
-
-                assert.deepEqual(['a1', 'b2', 'c3'], out);
-                assert.deepEqual(['a', 'b', 'c'], indexs);
-            });
-        })
-    describe('#map -- similar to Array#map', function() {
-
-    });
-
     describe('#tap -- call the interceptor & return itself', function() {
         it('obj.tap(inter)', function() {
             var a = {};
@@ -86,7 +178,7 @@ describe('Object', function() {
 
 });
 
-describe('Function', function() {
+describe('#Function', function() {
 
     describe('#negate -- return a negated version of predicate', function() {
 
@@ -249,7 +341,7 @@ describe('Function', function() {
 
 });
 
-describe('Array', function() {
+describe('#Array', function() {
 
 
     describe('creation', function() {
@@ -331,18 +423,18 @@ describe('Array', function() {
         });
 
         describe('#find -- find the first match the predicate', function() {
+            var isObject = function(obj) {
+                return typeof obj === 'object'
+            }
+            var data = [1, 3, 4, 5222, 456, 23, 25, 2, {
+                a: 233
+            }];
             it('arr.find(fn)', function() {
-                var data = [1, 3, 4, 5222, 456, 23, 25, 2, {
-                    a: 233
-                }];
-                assert.equal(233, data.find(S.isObject).a);
+                assert.equal(233, data.find(isObject).a);
             });
 
             it('Array.find(arr,fn)', function() {
-                var data = [1, 3, 4, 5222, 456, 23, 25, 2, {
-                    a: 233
-                }];
-                assert.equal(233, Array.find(data, S.isObject).a);
+                assert.equal(233, Array.find(data, isObject).a);
             });
 
         });
@@ -434,22 +526,28 @@ describe('Array', function() {
         });
 
         describe('#isEmpty -- return true if array.length === 0', function() {
+
             it('arr.isEmpty()', function() {
                 assert.equal([].isEmpty(), true);
             })
 
             it('Array.isEmpty(arr)', function() {
+                assert.equal(Object.isEmpty([]), true)
                 assert.equal(Array.isEmpty([]), true)
                 assert.equal(Array.isEmpty(null), true)
                 assert.equal(Array.isEmpty(undefined), true)
             })
+
         });
 
         describe('#partition -- split into two arrays by the predicate, one whose elements all satisfy the predicate and one whose not', function() {
-            it('arr.partition(fn)',function(){
-                assert.deepEqual([1,2,3,4,5,6].partition(function(i){
+            it('arr.partition(fn)', function() {
+                assert.deepEqual([1, 2, 3, 4, 5, 6].partition(function(i) {
                     return i % 2 === 0
-                }),[[2,4,6],[1,3,5]]);
+                }), [
+                    [2, 4, 6],
+                    [1, 3, 5]
+                ]);
             })
         });
 
@@ -481,8 +579,8 @@ describe('Array', function() {
         });
 
         describe('#update -- update specified element with new value', function() {
-            it('arr.update(index, newVal)',function(){
-                assert.deepEqual([1,3,3,4,5,6].update(1,2), [1,2,3,4,5,6])
+            it('arr.update(index, newVal)', function() {
+                assert.deepEqual([1, 3, 3, 4, 5, 6].update(1, 2), [1, 2, 3, 4, 5, 6])
             })
         });
 
@@ -496,10 +594,10 @@ describe('Array', function() {
     describe('extra & experimental', function() {
 
         describe('#reductions -- similar to the Array.reduce except returns an array records every intermediate value', function() {
-            it('arr.reductions(fn, [initial])', function(){
-                assert.deepEqual([1,2,3].reductions(function(acc,o){
+            it('arr.reductions(fn, [initial])', function() {
+                assert.deepEqual([1, 2, 3].reductions(function(acc, o) {
                     return acc + o
-                },0), [1,3,6]);
+                }, 0), [1, 3, 6]);
             })
         });
 
@@ -510,14 +608,11 @@ describe('Array', function() {
 });
 
 
-describe('S', function() {
+/*
+describe('#S', function() {
     describe('#isNull -- return true if the input object equals null or undefined', function() {
         it('S.isNull', function() {
-            assert.equal(S.isNull(null), true);
-            assert.equal(S.isNull(undefined), true)
-            assert.equal(S.isNull(void 0), true)
-            assert.equal(S.isNull({}), false)
-            assert.equal(S.isNull([]), false)
         });
     })
 })
+*/

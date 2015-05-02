@@ -7,15 +7,15 @@ var gulp = require('gulp'),
 
 
 gulp.task('doc', shell.task([
-    'mocha -R doc.js > doc.html'
+    'mocha -R doc > doc.html'
 ]));
 
 gulp.task('md', shell.task([
-    'mocha -R markdown doc.js > README.MD'
+    'mocha -R markdown test/doc.js > README.MD'
 ]));
 
 gulp.task('test', shell.task([
-    'mocha doc.js'
+    'mocha'
 ]));
 
 gulp.task('jshint', function(){

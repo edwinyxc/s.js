@@ -1,6 +1,133 @@
+warn Object.create exists, uninstalled
     <section class="suite">
-      <h1>Object</h1>
+      <h1>#Object</h1>
       <dl>
+        <section class="suite">
+          <h1>Predicates</h1>
+          <dl>
+            <section class="suite">
+              <h1>#isNull</h1>
+              <dl>
+                <dt>Object.isNull(obj)</dt>
+                <dd><pre><code>assert.equal(Object.isNull(null), true);
+assert.equal(Object.isNull(undefined), true)
+assert.equal(Object.isNull(void 0), true)</code></pre></dd>
+              </dl>
+            </section>
+            <section class="suite">
+              <h1>#notNull</h1>
+              <dl>
+                <dt>Object.notNull</dt>
+                <dd><pre><code>assert.equal(Object.notNull({}), true)
+assert.equal(Object.notNull([]), true)</code></pre></dd>
+              </dl>
+            </section>
+            <section class="suite">
+              <h1>#isEmpty</h1>
+              <dl>
+                <dt>Object.isEmpty(obj)</dt>
+                <dd><pre><code>assert.equal(Object.isEmpty(''), true)
+assert.equal(Object.isEmpty([]), true)
+assert.equal(Object.isEmpty(['a']), false)
+assert.equal(Object.isEmpty({}), true)
+assert.equal(Object.isEmpty({
+    a: 'a'
+}), false)
+assert.equal(Object.isEmpty(null), true)
+assert.equal(Object.isEmpty(void 0), true)
+assert.equal(Object.isEmpty('sdd'), false)</code></pre></dd>
+              </dl>
+            </section>
+            <section class="suite">
+              <h1>#notEmpty</h1>
+              <dl>
+                <dt>Object.notEmpty(obj)</dt>
+                <dd><pre><code>assert.equal(Object.notEmpty(''), false)
+assert.equal(Object.notEmpty([]), false)
+assert.equal(Object.notEmpty(['a']), true)
+assert.equal(Object.notEmpty({}), false)
+assert.equal(Object.notEmpty({
+    a: 'a'
+}), true)
+assert.equal(Object.notEmpty(null), false)
+assert.equal(Object.notEmpty(void 0), false)
+assert.equal(Object.notEmpty('sdd'), true)</code></pre></dd>
+              </dl>
+            </section>
+          </dl>
+        </section>
+        <section class="suite">
+          <h1>Asserts &amp; Utils</h1>
+          <dl>
+            <section class="suite">
+              <h1>#getOrCreate -- try to get a property of object, or create the property if it is not defined </h1>
+              <dl>
+                <dt>obj.getOrCreate(name, [newObejct])</dt>
+                <dd><pre><code>var a = {};
+var b = a.getOrCreate('name', 'yxc');
+assert.deepEqual(a, {
+    name: 'yxc'
+});
+assert.deepEqual(b, 'yxc');</code></pre></dd>
+                <dt>obj.getOrCreate(name,newObject) -- should keep null/undefined without operations</dt>
+                <dd><pre><code>var a = {
+    name: null,
+    value: undefined
+}
+var name = a.getOrCreate('name', 'yxc');
+assert.equal(name, null);
+var name1 = a.getOrCreate('value', 'yxc');
+assert.equal(name1, undefined);</code></pre></dd>
+              </dl>
+            </section>
+            <section class="suite">
+              <h1>#getOrDefault -- try to get a property of object, or get the default value if it is not defined or null</h1>
+              <dl>
+                <dt>obj.getOrDefault(name,default)</dt>
+                <dd><pre><code>var a = {'n':null,'y':'yes'};
+assert(a.getOrDefault('name','yxc'),'yxc');
+assert(a.getOrDefault('n','yxc'),'yxc');
+assert(a.getOrDefault('y','yxc'),'yes');</code></pre></dd>
+              </dl>
+            </section>
+          </dl>
+        </section>
+        <section class="suite">
+          <h1>#extend -- extend obejct from RIGHT TO LEFT</h1>
+          <dl>
+            <dt>obj.extend({},{},...)</dt>
+            <dd><pre><code>assert.deepEqual({
+    name: 'empty'
+}.extend(a, b), {
+    a: 'a',
+    b: 'b',
+    c: 'c',
+    name: 'empty'
+});</code></pre></dd>
+            <dt>Object.extend({},a,b,c ....)</dt>
+            <dd><pre><code>assert.deepEqual(Object.extend({
+    name: 'empty'
+}, a, b), {
+    a: 'a',
+    b: 'b',
+    c: 'c',
+    name: 'empty'
+});</code></pre></dd>
+          </dl>
+        </section>
+        <section class="suite">
+          <h1>#pairs -- convert object to a array </h1>
+          <dl>
+            <dt>obj.pairs() -- pair to 2d-arrays</dt>
+            <dd><pre><code>assert.deepEqual(example.pairs() ,[['a','a'],['b','b'],['c','c']])</code></pre></dd>
+            <dt>obj.pairs(true) -- pair to name/value pairs</dt>
+            <dd><pre><code>assert.deepEqual(example.pairs(true) ,[
+        {name:'a',value:'a'},
+        {name:'b',value:'b'},
+        {name:'c',value:'c'} 
+])</code></pre></dd>
+          </dl>
+        </section>
         <section class="suite">
           <h1>#create -- create objects using the input as prototype</h1>
           <dl>
@@ -16,43 +143,6 @@ assert.equal(another_cat.miao, 'miao');</code></pre></dd>
 };
 var another_cat = Object.create(cat);
 assert.equal(another_cat.miao, 'miao');</code></pre></dd>
-          </dl>
-        </section>
-        <section class="suite">
-          <h1>#forEach -- using fn(item,index) for iteration</h1>
-          <dl>
-this: { a: 'a1', b: 'b2', c: 'c3' }
-            <dt>obj.forEach(fn)</dt>
-            <dd><pre><code>var o = {
-    a: 'a1',
-    b: 'b2',
-    c: 'c3'
-}
-var out = [];
-var indexs = [];
-o.forEach(function(item, index) {
-    out.push(item);
-    indexs.push(index);
-});
-assert.deepEqual(['a1', 'b2', 'c3'], out);
-assert.deepEqual(['a', 'b', 'c'], indexs);</code></pre></dd>
-Report: function () { [native code] }
-this: { a: 'a1', b: 'b2', c: 'c3' }
-            <dt>Object.forEach(fn)</dt>
-            <dd><pre><code>var o = {
-    a: 'a1',
-    b: 'b2',
-    c: 'c3'
-}
-var out = [];
-var indexs = [];
-report(Object.forEach);
-Object.forEach(o, function(item, index) {
-    out.push(item);
-    indexs.push(index);
-});
-assert.deepEqual(['a1', 'b2', 'c3'], out);
-assert.deepEqual(['a', 'b', 'c'], indexs);</code></pre></dd>
           </dl>
         </section>
         <section class="suite">
@@ -73,7 +163,7 @@ assert.equal(Object.tap(a, function(_) {
       </dl>
     </section>
     <section class="suite">
-      <h1>Function</h1>
+      <h1>#Function</h1>
       <dl>
         <section class="suite">
           <h1>#negate -- return a negated version of predicate</h1>
@@ -213,7 +303,7 @@ assert.equal(c(1), 26);</code></pre></dd>
       </dl>
     </section>
     <section class="suite">
-      <h1>Array</h1>
+      <h1>#Array</h1>
       <dl>
         <section class="suite">
           <h1>creation</h1>
@@ -302,15 +392,9 @@ assert.deepEqual(data.where({
               <h1>#find -- find the first match the predicate</h1>
               <dl>
                 <dt>arr.find(fn)</dt>
-                <dd><pre><code>var data = [1, 3, 4, 5222, 456, 23, 25, 2, {
-    a: 233
-}];
-assert.equal(233, data.find(S.isObject).a);</code></pre></dd>
+                <dd><pre><code>assert.equal(233, data.find(isObject).a);</code></pre></dd>
                 <dt>Array.find(arr,fn)</dt>
-                <dd><pre><code>var data = [1, 3, 4, 5222, 456, 23, 25, 2, {
-    a: 233
-}];
-assert.equal(233, Array.find(data, S.isObject).a);</code></pre></dd>
+                <dd><pre><code>assert.equal(233, Array.find(data, isObject).a);</code></pre></dd>
               </dl>
             </section>
             <section class="suite">
@@ -398,7 +482,8 @@ assert.equal(a.findIndex(function(_) {
                 <dt>arr.isEmpty()</dt>
                 <dd><pre><code>assert.equal([].isEmpty(), true);</code></pre></dd>
                 <dt>Array.isEmpty(arr)</dt>
-                <dd><pre><code>assert.equal(Array.isEmpty([]), true)
+                <dd><pre><code>assert.equal(Object.isEmpty([]), true)
+assert.equal(Array.isEmpty([]), true)
 assert.equal(Array.isEmpty(null), true)
 assert.equal(Array.isEmpty(undefined), true)</code></pre></dd>
               </dl>
@@ -407,9 +492,12 @@ assert.equal(Array.isEmpty(undefined), true)</code></pre></dd>
               <h1>#partition -- split into two arrays by the predicate, one whose elements all satisfy the predicate and one whose not</h1>
               <dl>
                 <dt>arr.partition(fn)</dt>
-                <dd><pre><code>assert.deepEqual([1,2,3,4,5,6].partition(function(i){
+                <dd><pre><code>assert.deepEqual([1, 2, 3, 4, 5, 6].partition(function(i) {
     return i % 2 === 0
-}),[[2,4,6],[1,3,5]]);</code></pre></dd>
+}), [
+    [2, 4, 6],
+    [1, 3, 5]
+]);</code></pre></dd>
               </dl>
             </section>
             <section class="suite">
@@ -443,7 +531,7 @@ assert.equal(Array.isEmpty(undefined), true)</code></pre></dd>
               <h1>#update -- update specified element with new value</h1>
               <dl>
                 <dt>arr.update(index, newVal)</dt>
-                <dd><pre><code>assert.deepEqual([1,3,3,4,5,6].update(1,2), [1,2,3,4,5,6])</code></pre></dd>
+                <dd><pre><code>assert.deepEqual([1, 3, 3, 4, 5, 6].update(1, 2), [1, 2, 3, 4, 5, 6])</code></pre></dd>
               </dl>
             </section>
           </dl>
@@ -455,27 +543,11 @@ assert.equal(Array.isEmpty(undefined), true)</code></pre></dd>
               <h1>#reductions -- similar to the Array.reduce except returns an array records every intermediate value</h1>
               <dl>
                 <dt>arr.reductions(fn, [initial])</dt>
-                <dd><pre><code>assert.deepEqual([1,2,3].reductions(function(acc,o){
+                <dd><pre><code>assert.deepEqual([1, 2, 3].reductions(function(acc, o) {
     return acc + o
-},0), [1,3,6]);</code></pre></dd>
+}, 0), [1, 3, 6]);</code></pre></dd>
               </dl>
             </section>
-          </dl>
-        </section>
-      </dl>
-    </section>
-    <section class="suite">
-      <h1>S</h1>
-      <dl>
-        <section class="suite">
-          <h1>#isNull -- return true if the input object equals null or undefined</h1>
-          <dl>
-            <dt>S.isNull</dt>
-            <dd><pre><code>assert.equal(S.isNull(null), true);
-assert.equal(S.isNull(undefined), true)
-assert.equal(S.isNull(void 0), true)
-assert.equal(S.isNull({}), false)
-assert.equal(S.isNull([]), false)</code></pre></dd>
           </dl>
         </section>
       </dl>
